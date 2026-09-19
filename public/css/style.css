@@ -1,0 +1,213 @@
+* { 
+  box-sizing: border-box; 
+  margin: 0; 
+  padding: 0; 
+  font-family: system-ui, -apple-system, sans-serif;
+  touch-action: manipulation; /* Désactive le zoom au double-tap et accélère les clics */
+}
+
+body { 
+  background-color: #f1f5f9; 
+  color: #1e293b; 
+  height: 100vh; 
+  overflow: hidden; 
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.hidden { display: none !important; }
+
+/* -------------------------------------------------- */
+/* ÉCRAN 1 : CONNEXION (Nom d'équipe)                 */
+/* -------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.card h1 {
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+  color: #0f172a;
+}
+
+.card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+/* -------------------------------------------------- */
+/* ÉCRAN 2 : APPLICATION PRINCIPALE (Missions)        */
+/* -------------------------------------------------- */
+.app-layout { 
+  display: flex; 
+  flex-direction: column; 
+  height: 100vh; 
+  width: 100%; 
+  max-width: 500px; /* Format téléphone centré sur PC */
+  margin: 0 auto; 
+  background: #fff; 
+  position: relative;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+/* Bandeau haut */
+.top-bar { 
+  background: #0f172a; 
+  color: white; 
+  padding: 15px 20px; 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+}
+
+/* Conteneur regroupant le logo et le titre à gauche */
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Espace entre le logo et le texte ECO-IA */
+}
+
+.app-title { font-weight: bold; font-size: 1.1rem; }
+
+/* Style du logo en haut à gauche (circulaire) */
+.top-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #0288d1;
+}
+
+.team-badge { background: #0284c7; padding: 4px 10px; border-radius: 15px; font-size: 0.85rem; font-weight: 600; }
+
+/* Zone centrale scrollable */
+.content-area { 
+  flex: 1; 
+  overflow-y: auto; 
+  padding: 20px; 
+  padding-bottom: 90px; /* Laisse de l'espace pour ne pas être caché par le bandeau du bas */
+}
+
+.missions-list { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+.mission-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.mission-card.unlocked { background: #f0f9ff; border-color: #0284c7; cursor: pointer; }
+.mission-card.completed { background: #f0fdf4; border-color: #16a34a; }
+.mission-card.locked { background: #f8fafc; opacity: 0.6; }
+
+/* Bandeau bas (Fixé à l'intérieur du conteneur de l'application) */
+.bottom-bar { 
+  position: absolute; 
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background-color: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 16px;
+  z-index: 1000;
+}
+
+/* Bouton Scanner QR Code */
+.btn-qr-scan {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  height: 50px;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
+  transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+.btn-qr-scan:active {
+  transform: scale(0.98);
+}
+
+.qr-icon {
+  font-size: 1.3rem;
+}
+
+/* Style général d'une carte de mission */
+.mission-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  transition: all 0.2s ease;
+}
+
+/* Mission Terminée (Validée) */
+.mission-card.completed {
+  background: #f0fdf4;
+  border: 2px solid #22c55e;
+}
+
+/* Mission Déverrouillée (En cours) */
+.mission-card.unlocked {
+  background: #ffffff;
+  border: 2px solid #0284c7;
+}
+
+/* Mission Verrouillée */
+.mission-card.locked {
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  opacity: 0.7;
+}
+
+/* Badges d'état */
+.mission-badge {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+  display: inline-block;
+  margin-top: 4px;
+}
+.badge-completed { background: #dcfce7; color: #15803d; }
+.badge-unlocked { background: #e0f2fe; color: #0369a1; }
+.badge-locked { background: #e2e8f0; color: #475569; }
+
+/* Boutons et composants globaux */
+.btn { width: 100%; padding: 12px; background: #0284c7; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.btn-secondary { background: #e2e8f0; color: #334155; border: none; padding: 8px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+.btn-choice { background: #334155; color: white; margin-top: 8px; width: 100%; padding: 10px; border-radius: 6px; border: none; cursor: pointer; }
+.ia-box { background: #f0f9ff; border-left: 4px solid #0284c7; padding: 10px; margin: 15px 0; border-radius: 4px; }
+.feedback { padding: 10px; margin-top: 15px; border-radius: 6px; text-align: center; font-weight: bold; }
+.feedback.success { background: #dcfce7; color: #15803d; }
+.feedback.error { background: #fee2e2; color: #b91c1c; }
+
+

@@ -1,0 +1,184 @@
+.m3-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 15px;
+  padding-bottom: 100px; 
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.m3-waste-card {
+  background: #ffffff;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+.m3-waste-title {
+  font-size: 1.3rem;
+  line-height: 1.4;
+  color: #333;
+  margin-top: 10px;
+}
+
+.m3-photo-badge {
+  display: inline-block;
+  font-size: 0.85rem;
+  background-color: #4caf50;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+/* Grille modifiée pour le QCM : une seule colonne */
+.m3-targets-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* Boutons adaptés pour du texte long */
+.m3-target-btn {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f8f9fa;
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.m3-target-btn:hover:not([disabled]) {
+  background: #eef2f5;
+}
+
+.m3-target-btn.selected {
+  background: #e3f2fd;
+  border-color: #2196f3;
+}
+
+/* Nouvelles classes pour valider/invalider les réponses */
+.m3-target-btn.correct {
+  background: #d4edda;
+  border-color: #28a745;
+}
+
+.m3-target-btn.error {
+  background: #f8d7da;
+  border-color: #dc3545;
+}
+
+.m3-target-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.m3-feedback-console {
+  background: #fdfdfd;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.m3-feedback-console.hidden {
+  display: none;
+}
+
+.m3-actions {
+  text-align: center;
+  position: relative;
+  z-index: 10; 
+  margin-top: 20px;
+}
+
+.m3-btn-primary {
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: bold;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.m3-btn-primary:hover:not([disabled]) {
+  background-color: #1976d2;
+}
+
+.m3-btn-primary:disabled {
+  background-color: #90caf9;
+  cursor: not-allowed;
+}
+
+/* --- LORE INTRO --- */
+.m3-intro-lore {
+  background: #f0f4f8;
+  border-left: 4px solid #2196f3;
+  padding: 15px 20px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+  color: #334e68;
+  line-height: 1.5;
+}
+
+.m3-lore-sys {
+  font-family: monospace;
+  font-weight: bold;
+  color: #1976d2;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.m3-intro-lore p {
+  margin: 0 0 10px 0;
+}
+.m3-intro-lore p:last-child {
+  margin-bottom: 0;
+}
+
+/* --- LORE FIN DE JEU --- */
+.m3-lore-end {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.m3-lore-end h3 {
+  margin-top: 0;
+  color: #f57f17;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+.m3-lore-item {
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #424242;
+  border: 1px solid #ffecb3;
+}
+
+.m3-lore-item:last-child {
+  margin-bottom: 0;
+}
+
+.m3-lore-end.hidden {
+  display: none;
+}

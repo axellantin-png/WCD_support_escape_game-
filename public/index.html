@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Escape Game - ECO-IA</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/mission2.css">
+  <link rel="stylesheet" href="./css/mission3.css">
+  <link rel="stylesheet" href="css/mission4.css">
+</head>
+<body>
+
+  <!-- ÉCRAN DE CONNEXION -->
+  <div id="screen-register" class="container">
+    <div class="card" style="margin-top: 40px; max-width: 500px;">
+      
+      <!-- EN-TÊTE AVEC LOGO ET TITRE -->
+      <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+        <img src="./images/logo_eco_IA.jpg" alt="Logo ECO-IA" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #0288d1; flex-shrink: 0;">
+        <h1 style="margin: 0; font-size: 1.5rem;">Escape Game ECO-IA</h1>
+      </div>
+      
+      <!-- TEXTE D'INTRODUCTION DE L'ÉCRAN D'ACCUEIL -->
+      <div style="font-size: 0.95rem; color: #4b5563; margin-bottom: 20px; text-align: left; line-height: 1.5; display: flex; flex-direction: column; gap: 12px;">
+        <p style="margin: 0;"><strong>Bienvenue au centre de contrôle environnemental de Verneuil-sur-Seine.</strong></p>
+        <p style="margin: 0;">Face aux défis écologiques, notre ville déploie aujourd'hui un outil inédit : <strong>ECO-IA</strong>, une Intelligence Artificielle conçue pour repérer la pollution, protéger notre biodiversité et optimiser le nettoyage de nos espaces publics. Mais une IA naît sans connaissances. Pour devenir opérationnelle, elle a besoin d'exemples, de données et d'expérience humaine.</p>
+        <p style="margin: 0;">C'est là que vous intervenez. En tant qu'Entraîneur Officiel d'ECO-IA, votre mission de terrain est cruciale. Chaque déchet ramassé, chaque photo envoyée et chaque analyse effectuée aujourd'hui forgeront les algorithmes de demain. Connectez-vous, rejoignez votre équipe et commencez l'apprentissage. La ville compte sur vous.</p>
+      </div>
+
+      <form id="form-register">
+        <input type="text" id="team-name" placeholder="Nom de l'équipe..." required>
+        <button type="submit" class="btn">Démarrer</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- APPLICATION PRINCIPALE -->
+  <div id="screen-main" class="app-layout hidden">
+    <!-- BANDEAU HAUT -->
+    <header class="top-bar">
+      <!-- Conteneur pour le logo et le titre à gauche -->
+      <div class="top-bar-left">
+        <img src="./images/logo_eco_IA.jpg" alt="Logo ECO-IA" class="top-logo">
+        <span class="app-title">ECO-IA</span>
+      </div>
+      <!-- Badge de l'équipe à droite -->
+      <span id="team-badge" class="team-badge">Équipe</span>
+    </header>
+
+    <!-- CONTENU DYNAMIQUE -->
+    <main class="content-area">
+      <!-- Vue 1: Liste des missions -->
+      <div id="view-list">
+        <h2>Missions disponibles</h2>
+        <div id="missions-list" class="missions-list"></div>
+      </div>
+
+      <!-- Vue 2: Zone où la mission chargée s'injecte -->
+      <div id="view-detail" class="hidden">
+        <button id="btn-back" class="btn-secondary">← Liste des missions</button>
+        <h2 id="detail-title" style="margin-top: 15px;"></h2>
+        
+        <!-- Injection automatique du HTML de la mission ici -->
+        <div id="mission-content-area" style="margin-top: 15px;"></div>
+        
+        <div id="feedback" class="feedback hidden"></div>
+      </div>
+    </main>
+
+    <!-- Bandeau fixe en bas de page -->
+    <footer class="bottom-bar">
+      <button id="btn-scan-qr" class="btn-qr-scan">
+        <span class="qr-icon">📷</span>
+        <span>Scanner un QR Code</span>
+      </button>
+    </footer>
+  </div>
+
+  <!-- Script principal de l'application -->
+  <script type="module" src="/js/app.js"></script>
+
+</body>
+</html>

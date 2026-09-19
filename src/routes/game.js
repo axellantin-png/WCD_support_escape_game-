@@ -1,108 +1,218 @@
-// src/routes/game.js
-//
-// Deux routes, toutes deux réservées à une équipe connectée (le
-// middleware requireAuth pose req.team avant d'arriver ici) :
-//
-//   GET  /api/game/current   -> l'étape où en est l'équipe
-//   POST /api/game/submit    -> l'équipe soumet une réponse pour cette étape
-//
-// Ce fichier ne connaît AUCUN détail propre à un type d'énigme. Il se
-// contente de regarder step.type et d'appeler le module correspondant
-// via le registre (src/modules/index.js). C'est ça qui permet d'ajouter
-// une énigme sans jamais toucher à ce fichier.
-
 const express = require('express');
-const db = require('../../database/db');
-const modules = require('../modules');
-const requireAuth = require('../middleware/auth');
-
 const router = express.Router();
 
-router.use(requireAuth);
-
-// ------------------------------------------------------------
-// GET /api/game/current
-// ------------------------------------------------------------
-router.get('/current', (req, res) => {
-  const team = req.team;
-
-  if (!team.current_step_id) {
-    // Plus d'étape en cours = l'équipe a terminé le scénario.
-    return res.json({ finished: true });
+// 1. Middleware : Vérification DB
+router.use((req, res, next) => {
+  const db = req.app.get('db');
+  if (!db) {
+    return res.status(500).json({ error: "Instance de base de données non configurée." });
   }
-
-  const step = db.getStepById(team.current_step_id);
-  if (!step) {
-    return res.status(500).json({ error: 'Étape introuvable en base.' });
-  }
-
-  res.json({
-    id: step.id,
-    title: step.title,
-    type: step.type,
-    content: sanitizeContentForClient(step),
-  });
+  next();
 });
 
-// ------------------------------------------------------------
-// POST /api/game/submit   body: { value: "..." }
-// ------------------------------------------------------------
-router.post('/submit', (req, res) => {
-  const team = req.team;
-  const { value } = req.body;
-
-  if (!team.current_step_id) {
-    return res.status(400).json({ error: 'Cette équipe a déjà terminé le scénario.' });
+// 2. Middleware : Mise à jour de l'activité
+router.use((req, res, next) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+  if (teamId) {
+    try {
+      db.prepare("UPDATE teams SET last_active = datetime('now') WHERE id = ?").run(teamId);
+    } catch (e) {}
   }
-
-  const step = db.getStepById(team.current_step_id);
-  if (!step) {
-    return res.status(500).json({ error: 'Étape introuvable en base.' });
-  }
-
-  const stepModule = modules[step.type];
-  if (!stepModule) {
-    // Ça ne devrait arriver qu'en cas d'erreur de saisie dans la base
-    // (un type d'étape sans module enregistré) — jamais en usage normal.
-    return res.status(500).json({ error: `Aucun module enregistré pour le type "${step.type}".` });
-  }
-
-  const result = stepModule.validate(value, step);
-
-  db.logScanAttempt({
-    teamId: team.id,
-    stepId: step.id,
-    submittedValue: value,
-    success: result.success,
-  });
-
-  if (result.success) {
-    db.advanceTeamToStep(team.id, step.next_step_id); // null = fin du scénario
-  }
-
-  res.json({
-    success: result.success,
-    message: result.message || null,
-    finished: result.success && step.next_step_id === null,
-  });
+  next();
 });
 
-// ------------------------------------------------------------
-// content_json contient parfois la solution attendue (expected_code,
-// correct_choice_id, expected_answer...). Il ne faut JAMAIS l'envoyer
-// telle quelle au navigateur, sinon la réponse est visible dans les
-// outils de développement du téléphone. On retire ici les clés connues
-// pour contenir une solution avant l'envoi au client.
-// ------------------------------------------------------------
-const SOLUTION_KEYS = ['expected_code', 'correct_choice_id', 'expected_answer'];
+// ==========================================
+// 🚀 ROUTE RÉPARÉE : INSCRIPTION DE L'ÉQUIPE
+// ==========================================
+router.post('/register', (req, res) => {
+  const db = req.app.get('db');
+  const { team_name } = req.body;
 
-function sanitizeContentForClient(step) {
-  const content = JSON.parse(step.content_json);
-  const safeContent = { ...content };
-  for (const key of SOLUTION_KEYS) {
-    delete safeContent[key];
+  if (!team_name) return res.status(400).json({ error: 'Nom d’équipe requis' });
+
+  try {
+    let team = db.prepare('SELECT * FROM teams WHERE team_name = ?').get(team_name);
+    if (!team) {
+      const info = db.prepare('INSERT INTO teams (team_name) VALUES (?)').run(team_name);
+      team = { id: info.lastInsertRowid, team_name };
+    }
+    req.session.teamId = team.id;
+    res.json({ success: true, team });
+  } catch (err) {
+    console.error('Erreur inscription :', err);
+    res.status(500).json({ error: 'Erreur serveur' });
   }
-  return safeContent;
-}
+});
+
+// ==========================================
+// GESTION DES MISSIONS ET DU SCAN
+// ==========================================
+
+// Liste des missions avec séparation (Débloquées / Terminées)
+router.get('/missions', (req, res) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+
+  try {
+    const missions = db.prepare('SELECT * FROM missions ORDER BY order_index ASC').all();
+    let completed_ids = [];
+    let unlocked_ids = [];
+
+    if (teamId) {
+      const rows = db.prepare('SELECT mission_id, unlocked_at, completed_at FROM team_progress WHERE team_id = ?').all(teamId);
+      completed_ids = rows.filter(r => r.completed_at !== null).map(r => r.mission_id);
+      unlocked_ids = rows.filter(r => r.unlocked_at !== null).map(r => r.mission_id);
+    }
+
+    res.json({ success: true, missions, completed_ids, unlocked_ids });
+  } catch (err) {
+    console.error('Erreur chargement missions :', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Scanner pour DÉBLOQUER une mission
+router.post('/scan', (req, res) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+  const { pattern } = req.body;
+
+  if (!teamId) return res.status(401).json({ error: 'Non connecté' });
+  if (!pattern) return res.status(400).json({ error: 'Aucun motif fourni' });
+
+  try {
+    const mission = db.prepare('SELECT * FROM missions WHERE unlock_pattern = ?').get(pattern);
+    if (!mission) return res.json({ success: false, error: 'Motif ou code invalide.' });
+
+    const existing = db.prepare('SELECT id FROM team_progress WHERE team_id = ? AND mission_id = ?').get(teamId, mission.id);
+    if (existing) {
+      db.prepare("UPDATE team_progress SET unlocked_at = COALESCE(unlocked_at, datetime('now')) WHERE team_id = ? AND mission_id = ?").run(teamId, mission.id);
+    } else {
+      db.prepare("INSERT INTO team_progress (team_id, mission_id, unlocked_at) VALUES (?, ?, datetime('now'))").run(teamId, mission.id);
+    }
+
+    res.json({ success: true, message: `Mission "${mission.title}" débloquée !`, mission_id: mission.id });
+  } catch (err) {
+    console.error('Erreur scan :', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Enregistrer la RÉUSSITE du mini-jeu (Mission 2)
+router.post('/missions/complete', (req, res) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+  const { mission_id } = req.body;
+
+  if (!teamId) return res.status(401).json({ error: 'Non connecté' });
+
+  try {
+    const existing = db.prepare('SELECT id FROM team_progress WHERE team_id = ? AND mission_id = ?').get(teamId, mission_id);
+    if (existing) {
+      db.prepare("UPDATE team_progress SET completed_at = datetime('now') WHERE team_id = ? AND mission_id = ?").run(teamId, mission_id);
+    } else {
+      db.prepare("INSERT INTO team_progress (team_id, mission_id, completed_at) VALUES (?, ?, datetime('now'))").run(teamId, mission_id);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Erreur validation mission :', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// ==========================================
+// GESTION DES PHOTOS (MISSION 1)
+// ==========================================
+
+router.get('/photos', (req, res) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+  if (!teamId) return res.status(401).json({ error: 'Non connecté' });
+
+  try {
+    const photos = db.prepare('SELECT * FROM mission_1 WHERE team_id = ? ORDER BY id DESC').all(teamId);
+    res.json({ success: true, photos });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+router.post('/photos', (req, res) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+  const { image_url, ia_category, user_category, label } = req.body;
+
+  if (!teamId) return res.status(401).json({ error: 'Non connecté' });
+
+  try {
+    const info = db.prepare(`
+      INSERT INTO mission_1 (team_id, image_url, ia_category, user_category, label)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(teamId, image_url, ia_category, user_category, label);
+
+    // Validation auto de la Mission 1 à 10 photos
+    const countRow = db.prepare('SELECT COUNT(*) as total FROM mission_1 WHERE team_id = ?').get(teamId);
+    if (countRow.total >= 10) {
+      const existing = db.prepare('SELECT id FROM team_progress WHERE team_id = ? AND mission_id = 1').get(teamId);
+      if (existing) {
+        db.prepare("UPDATE team_progress SET completed_at = datetime('now') WHERE team_id = ? AND mission_id = 1").run(teamId);
+      } else {
+        db.prepare("INSERT INTO team_progress (team_id, mission_id, completed_at) VALUES (?, 1, datetime('now'))").run(teamId);
+      }
+    }
+
+    res.json({ success: true, photoId: info.lastInsertRowid, totalPhotos: countRow.total });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+router.delete('/photos/:id', (req, res) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+  const photoId = req.params.id;
+
+  if (!teamId) return res.status(401).json({ error: 'Non connecté' });
+
+  try {
+    db.prepare('DELETE FROM mission_1 WHERE id = ? AND team_id = ?').run(photoId, teamId);
+
+    // Révocation de la Mission 1 si < 10 photos
+    const countRow = db.prepare('SELECT COUNT(*) as total FROM mission_1 WHERE team_id = ?').get(teamId);
+    if (countRow.total < 10) {
+      db.prepare("UPDATE team_progress SET completed_at = NULL WHERE team_id = ? AND mission_id = 1").run(teamId);
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+router.patch('/photos/:id', (req, res) => {
+  const db = req.app.get('db');
+  const teamId = req.session.teamId;
+  const photoId = req.params.id;
+  const { user_category, label } = req.body;
+
+  if (!teamId) return res.status(401).json({ error: 'Non connecté' });
+
+  try {
+    const catVal = user_category !== undefined ? user_category : null;
+    const labelVal = label !== undefined ? label : null;
+
+    db.prepare(`
+      UPDATE mission_1 
+      SET user_category = COALESCE(?, user_category),
+          label = COALESCE(?, label)
+      WHERE id = ? AND team_id = ?
+    `).run(catVal, labelVal, photoId, teamId);
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
 
 module.exports = router;
