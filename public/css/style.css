@@ -9,7 +9,8 @@
 body { 
   background-color: #f1f5f9; 
   color: #1e293b; 
-  height: 100vh; 
+  height: 100vh; /* Fallback pour les anciens navigateurs */
+  height: 100dvh; /* Utilise la hauteur réelle dynamique de l'écran mobile */
   overflow: hidden; 
   margin: 0;
   display: flex;
@@ -52,13 +53,16 @@ body {
   font-size: 1rem;
 }
 
+
+
 /* -------------------------------------------------- */
 /* ÉCRAN 2 : APPLICATION PRINCIPALE (Missions)        */
 /* -------------------------------------------------- */
 .app-layout { 
   display: flex; 
   flex-direction: column; 
-  height: 100vh; 
+  height: 100vh; /* Fallback */
+  height: 100dvh; /* S'adapte parfaitement à l'écran mobile sans être masqué */
   width: 100%; 
   max-width: 500px; /* Format téléphone centré sur PC */
   margin: 0 auto; 

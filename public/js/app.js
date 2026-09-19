@@ -122,10 +122,16 @@ async function renderMissionsList() {
 
     listContainer.innerHTML = '';
 
+    let allCompleted = true;
+
     data.missions.forEach(mission => {
       const isCompleted = data.completed_ids && data.completed_ids.includes(mission.id);
       const isUnlocked = (data.unlocked_ids && data.unlocked_ids.includes(mission.id)) || mission.order_index === 1 || mission.is_locked === 0;
       const isLocked = !isUnlocked && !isCompleted;
+
+      if (!isCompleted) {
+        allCompleted = false;
+      }
 
       let badgeHtml = '<span class="mission-badge badge-unlocked">▶️ Disponible</span>';
       let btnHtml = `<button class="btn" style="width: auto; padding: 8px 16px; background: #0284c7; color: white; border: none; border-radius: 6px; cursor: pointer;" onclick="window.startMission(${mission.id}, '${mission.title.replace(/'/g, "\\'")}')">Lancer</button>`;
@@ -152,6 +158,24 @@ async function renderMissionsList() {
       `;
       listContainer.appendChild(card);
     });
+
+    // --- MESSAGE DE REMERCIEMENT FINAL SI TOUT EST FINI ---
+    if (data.missions.length > 0 && allCompleted) {
+      let congratsBanner = document.getElementById('congrats-banner');
+      if (!congratsBanner) {
+        congratsBanner = document.createElement('div');
+        congratsBanner.id = 'congrats-banner';
+        congratsBanner.style.cssText = "background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; margin-top: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
+        congratsBanner.innerHTML = `
+          <h2 style="margin: 0 0 10px 0; font-size: 1.4rem;">🎉 Félicitations à toute l'équipe !</h2>
+          <p style="margin: 0 0 15px 0; font-size: 0.95rem; line-height: 1.5;">
+            Grâce à votre engagement lors de ce World Clean Up Day, <strong>ECO-IA</strong> est désormais pleinement opérationnelle pour protéger Verneuil-sur-Seine. Vos données, vos tris et vos analyses ont forgé les algorithmes de demain. La ville vous remercie chaleureusement pour votre impact citoyen ! 🌍
+          </p>
+          <span style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold;">Mission accomplie avec succès 🚀</span>
+        `;
+        listContainer.parentNode.appendChild(congratsBanner);
+      }
+    }
 
   } catch (err) {
     console.error("Erreur chargement liste missions:", err);

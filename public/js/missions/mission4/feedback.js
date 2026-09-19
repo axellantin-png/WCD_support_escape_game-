@@ -35,19 +35,29 @@ export class FeedbackManager {
 
     html += `</div>`;
 
-    if (isSuccess && onNextMission) {
-      html += `
-        <div style="text-align: center; margin-top: 20px;">
-          <button id="btn-next-mission" class="btn-primary">Mission Suivante ➔</button>
-        </div>
-      `;
-    }
+    html += `
+      <div style="text-align: center; margin-top: 20px;">
+        <button id="btn-next-mission" style="background: #16a34a; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+          ${isSuccess ? 'Valider et Terminer la mission ➔' : 'Reessayer / Continuer ➔'}
+        </button>
+      </div>
+    `;
 
     this.container.innerHTML = html;
 
+    // Utilisation d'un écouteur direct sur le bouton nouvellement créé
     const btnNext = this.container.querySelector('#btn-next-mission');
     if (btnNext) {
-      btnNext.addEventListener('click', () => onNextMission());
+      btnNext.onclick = (e) => {
+        e.preventDefault();
+        console.log("Clic sur le bouton de fin de mission 4. Succès =", isSuccess);
+        
+        if (typeof onNextMission === 'function') {
+          onNextMission();
+        } else {
+          console.error("Erreur : onNextMission n'est pas une fonction !");
+        }
+      };
     }
   }
 

@@ -55,10 +55,13 @@ export default {
     const dragDrop = new DragDropManager((card, dropTarget) => {
       const wasteId = card.dataset.wasteId;
 
-      if (dropTarget.classList.contains('timeline-slot')) {
-        const slotContent = dropTarget.querySelector('.slot-content');
+      // On s'assure d'attraper le slot parent peu importe où l'on dépose
+      const slotElement = dropTarget.closest('.timeline-slot');
+
+      if (slotElement) {
+        const slotContent = slotElement.querySelector('.slot-content') || slotElement;
         slotContent.appendChild(card);
-        gameState.placeWaste(wasteId, dropTarget.dataset.slotId);
+        gameState.placeWaste(wasteId, slotElement.dataset.slotId);
       } else if (dropTarget.closest('#waste-pool')) {
         wasteListTarget.appendChild(card);
         gameState.placeWaste(wasteId, null);
@@ -86,8 +89,12 @@ export default {
         }
       } else if (slot && selectedCard) {
         const wasteId = selectedCard.dataset.wasteId;
-        slot.querySelector('.slot-content').appendChild(selectedCard);
+        const slotContent = slot.querySelector('.slot-content') || slot;
+        slotContent.appendChild(selectedCard);
+        
+        // On récupère explicitement l'ID du slot
         gameState.placeWaste(wasteId, slot.dataset.slotId);
+        
         selectedCard.classList.remove('selected');
         selectedCard = null;
         btnValidate.disabled = !gameState.isAllPlaced();
@@ -112,7 +119,7 @@ export default {
     });
 
     // 6. Action de Validation
-    btnValidate.addEventListener('click', () => {
+    btnValidate.addEventListener('click', async () => {
       const { allCorrect, results } = gameState.validate();
 
       results.forEach(item => {
@@ -123,17 +130,42 @@ export default {
         }
       });
 
-      if (allCorrect) {
-        ecoMessage.textContent = "Base de données temporelle mise à jour avec succès ! Les durées sont parfaitement cohérentes.";
-      } else {
-        ecoMessage.textContent = "Certaines estimations semblent incorrectes. Analyse la correction ci-dessous pour m'aider à apprendre.";
+      if (ecoMessage) {
+        if (allCorrect) {
+          ecoMessage.textContent = "Base de données temporelle mise à jour avec succès ! Les durées sont parfaitement cohérentes.";
+        } else {
+          ecoMessage.textContent = "Certaines estimations semblent incorrectes. Analyse la correction ci-dessous pour m'aider à apprendre.";
+        }
       }
 
+      // On affiche le feedback visuel
       feedback.show(results, allCorrect, () => {
         if (typeof onComplete === 'function') {
-          onComplete();
+          onComplete(true, "Mission 4 validée ! L'horloge de décomposition d'ECO-IA est calibrée.");
         }
       });
+
+      // SI TOUT EST CORRECT : Enregistrement BDD et retour au menu
+      if (allCorrect) {
+        try {
+          await fetch('/api/missions/complete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mission_id: 4 })
+          });
+          console.log("Mission 4 validée et enregistrée en BDD !");
+        } catch (e) {
+          console.error("Erreur enregistrement mission 4 :", e);
+        }
+
+        setTimeout(() => {
+          if (typeof onComplete === 'function') {
+            onComplete(true, "Mission 4 validée ! L'horloge de décomposition d'ECO-IA est calibrée.");
+          } else {
+            window.closeMissionDetail();
+          }
+        }, 2500);
+      }
     });
 
     // AJOUT : Texte de conclusion & Le saviez-vous ? à la fin de la mission
