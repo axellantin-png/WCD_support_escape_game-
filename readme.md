@@ -1,145 +1,109 @@
-# 🏛️ City Escape - PWA & Serveur Local
+# 🌍 World Clean Up Day – ECO-IA (Verneuil-sur-Seine)
 
-Un système d'information léger, robuste et facile à entretenir pour organiser un **Escape Game à l'échelle d'une ville**.
+Application interactive web conçue pour accompagner un **World Clean Up Day** citoyen à Verneuil-sur-Seine. L'application combine une chasse aux déchets physique et une aventure ludique et pédagogique pour entraÎ·ner **ECO-IA**, une intelligence artificielle fictive dédiée à la protection de l'environnement.
 
-Les joueurs progressent dans l'histoire en scannant des QR codes disséminés dans la ville. L'expérience se fait directement depuis une Progressive Web App (PWA) sans redirection ni installation via un App Store.
+---
 
-***
+## 📖 L'Histoire
 
-## 🎯 Fonctionnalités clés
+Bienvenue au centre de contrôle environnemental de **Verneuil-sur-Seine**.  
+Face aux défis écologiques, la ville déploie un outil inédit : **ECO-IA**, une Intelligence Artificielle conçue pour repÉ·rer la pollution, protéger la biodiversité·´ et optimiser le nettoyage des espaces publics.  
 
-- **📱 Application Web PWA :** Fonctionne directement dans le navigateur du smartphone. La caméra est intégrée pour scanner les QR codes sans quitter l'application.
-- **👥 Gestion par équipe :** Connexion rapide via un nom/code d'équipe. Gestion de session par token local (pas de création de compte requise).
-- **🗺️ Progression dynamique :** Vérification en temps réel des QR codes scannés selon l'étape actuelle de l'équipe.
-- **⚡ Architecture légère & autonome :** Conçu pour tourner sur un simple PC de bureau servant de serveur local, capable d'accueillir jusqu'à **500 joueurs simultanés**.
-- **🛠️ Maintenance ultra-simple :** Base de données dans un fichier unique, configuration d'étapes en JSON ou DB, aucun service tiers payant requis.
+Mais une IA naî®·t sans connaissances. En tant qu'**Entraî®·neur Officiel**, chaque équipe de terrain doit l'aider à apprendre grâ¢·ce à des données, des photos, des simulations et des analyses.
 
-***
+---
 
-## 🏗️ Architecture du projet
+## 🚀 Les 4 Missions du Jeu
 
-Le projet est conçu avec une stack technique minimale pour garantir une stabilité maximale le jour J :
+1. **♻ï»¿ Reconnaî®·tre les déchets (Mission 1) :** Prendre en photo et classifier 10 types de déchets ou éléments naturels rencontrÉ·s sur le terrain pour nourrir la base de vision artificielle d'ECO-IA.
+2. **🚚 Le déplacement des déchets (Mission 2) :** Un mini-jeu de simulation pour comprendre comment les déchets se déplacent dans les parcs en fonction de la météo, du vent et des animaux.
+3. **🌍 L'impact des déchets (Mission 3) :** Un quiz interactif sur l'impact environnemental des déchets et les règles de recyclabilité·´.
+4. **⏳ Le temps des déchets (Mission 4) :** Un atelier de frise chronologique (avec mode Normal et mode Enfant) pour découvrir la durée réelle de décomposition des matériaux dans la nature.
 
-```text
-             [ Smartphones (4G/5G) ]
-                        │
-                        ▼
-            [ Tunnel HTTPS / Domaine ]
-     (Cloudflare Tunnel / ngrok / Port Forward)
-                        │
-                        ▼
-         ┌──────────────┴──────────────┐
-         │       Nginx (Reverse Proxy) │  <-- Gestion SSL & Cache Média
-         └──────────────┬──────────────┘
-                        │
-                        ▼
-         ┌──────────────┴──────────────┐
-         │     Node.js + Express.js    │  <-- Serveur Applicatif & API
-         └──────────────┬──────────────┘
-                        │
-                        ▼
-         ┌──────────────┴──────────────┐
-         │        SQLite (DB)          │  <-- Fichier unique (Équipes, Progression)
-         └─────────────────────────────┘
-```
+---
 
-### Stack technique
+## 🛠ï»¿ Stack Technique
 
-- **Frontend :** HTML5 / CSS3 / JavaScript Vanilla (ou framework léger), Web API Camera (html5-qrcode / jsQR).
-- **Backend :** Node.js avec Express.js.
-- **Gestionnaire de processus :** PM2 (redémarrage automatique en cas de crash).
-- **Base de données :** SQLite3 (stockage local sur fichier).
-- **Reverse Proxy :** Nginx (gestion des certificats HTTPS obligatoires pour l'accès caméra).
+- **Backend :** Node.js, Express, `express-session`
+- **Base de données :** SQLite (`better-sqlite3`)
+- **Frontend :** HTML5, CSS3, JavaScript Vanilla (ES Modules)
+- **Sé·´curité·´ & Outils :** Gestion des sessions par équipe, espace d'administration dédié.
 
-## 📂 Structure du projet
+---
+
+## 📂 Architecture du Projet
 
 ```text
-city-escape/
-├── config/
-│   └── scenario.json        # Configuration des étapes, indices et QR codes
-├── public/                  # Assets du Frontend (PWA)
-│   ├── css/
+.
+├── admin
+│   ├── dashbord.js
+│   └── index.html
+├── database
+│   ├── db.js
+│   ├── game.db
+│   └── schemas.sql
+├── illustrations/        # Logos et visuels du projet
+├── public
+│   ├── css/              # Styles par mission et global
+│   ├── images/           # Assets des déchets (trognons, bouteilles, etc.)
+│   ├── index.html        # Page principale de l'application
 │   ├── js/
-│   │   ├── app.js           # Logique de l'application & PWA
-│   │   └── scanner.js       # Module de scan QR Code
-│   ├── media/               # Images, sons et médias du jeu
-│   ├── index.html           # Interface utilisateur unique
-│   └── manifest.json        # Fichier Manifest PWA
+│   │   ├── app.js        # Logique principale et gestion des écrans
+│   │   ├── missions/     # Modules JS pour chaque mission (1 à 4)
+│   │   └── scanner.js    # Module de scan QR code / motifs
+│   └── modules/
 ├── src/
-│   ├── controllers/         # Logique des routes (Scan, Équipe, Progression)
-│   ├── database/            # Fichier SQLite & migrations
-│   │   └── db.sqlite
-│   ├── middlewares/         # Authentification par token d'équipe
-│   ├── routes/              # Définition des endpoints API
-│   └── app.js               # Entrée du serveur Express
-├── nginx/
-│   └── city-escape.conf     # Exemple de configuration Nginx
-├── process.yml              # Fichier de configuration PM2
-├── package.json
-└── README.md
+│   ├── config.js
+│   ├── middleware/       # Authentification admin & session
+│   └── routes/           # Routes API (jeu, auth, admin)
+├── server.js             # Point d'entré·´e du serveur Node.js
+└── package.json
 ```
 
-## 🚀 Installation & démarrage rapide
+---
 
-### Prérequis
+## ⚙ï»¿ Installation et Lancement
 
-- Node.js (v18 ou supérieur)
-- Nginx (pour le reverse proxy HTTPS)
-- Un outil de tunneling (ex: Cloudflare Tunnel) pour rendre votre PC joignable depuis l'extérieur en HTTPS.
+### 1. Prérequis
 
-### 1. Installation des dépendances
+Assure-toi d'avoir installé **Node.js** (version 16+ recommandÉ·e) sur ta machine.
+
+### 2. Installation des dépendances
+
+Ouvre un terminal à la racine du projet et exé·´cute :
 
 ```bash
-git clone https://github.com/votre-user/city-escape.git
-cd city-escape
 npm install
 ```
 
-### 2. Initialisation de la base de données
+### 3. Lancement du serveur
+
+Dé·´marre l'application en mode local :
 
 ```bash
-npm run db:init
+npm start
 ```
 
-### 3. Lancement du serveur en développement
+(ou `node server.js`)
 
-```bash
-npm run dev
-```
+Le serveur se lancera par défaut sur l'adresse : **http://localhost:3000**
 
-### 4. Lancement en production avec PM2
+---
 
-```bash
-npm install -g pm2
-pm2 start process.yml
-```
+## 🔒 Espace Administration
 
-## 🌐 Exposition HTTPS sur Internet
+Un tableau de bord administrateur est accessible pour suivre la progression des équipes connectÉ·es et analyser les données récoltÉ·es sur le terrain :
 
-La caméra des smartphones nécessite impérativement une connexion HTTPS sécurisée.
+- **URL :** http://localhost:3000/admin
 
-- Configurez Nginx en Reverse Proxy pour pointer vers le port local de Node.js (ex: localhost:3000).
-- Utilisez Cloudflare Tunnel (recommandé pour sa simplicité et sa gratuité) pour relier votre Nginx local à votre nom de domaine sans ouvrir de ports sur votre box internet :
+---
 
-```bash
-cloudflared tunnel run city-escape
-```
+## 👥 Auteurs & Remerciements
 
-## 🎮 Déroulement du jeu (côté joueur)
+Projet développé dans le cadre du **World Clean Up Day** pour la ville de **Verneuil-sur-Seine**.
 
-1. **Rejoindre :** L'équipe flashe un premier QR code de départ ou entre son nom d'équipe. Un token de session est enregistré dans le navigateur.
-2. **Jouer :** L'écran affiche l'histoire et l'énigme de l'étape actuelle.
-3. **Scanner :** L'équipe trouve le QR code physique dans la ville et le scanne depuis l'application.
-4. **Valider :**
-   - **Bon QR :** Validation instantanée, passage à l'étape suivante.
-   - **Mauvais QR :** Message d'erreur ou indice.
+---
 
-## 🛠️ Maintenance & sauvegarde
+## ℹï»¿ Informations complémentaires
 
-- **Sauvegarder la progression :** Copiez simplement le fichier `src/database/db.sqlite`.
-- **Modifier le scénario :** Éditez directement `config/scenario.json` ou la table des étapes en base de données sans réinstruire le code de l'application.
-- **Surcharge / Crash :** PM2 relance automatiquement le serveur si un problème survient.
-
-## 📜 Licence
-
-Projet sous licence MIT. Libre réutilisation et adaptation pour vos propres escape games !
+Si tu as besoin d'ajouts spécifiques (consignes de déploiement sur serveur distant, variables d'environnement, crédits équipe/cré·´ateur, etc.), n'hé·´site pas à les ajouter dans cette section.
