@@ -83,6 +83,6 @@ CREATE TABLE mission_1 (
 -- ============================================================
 INSERT INTO missions (order_index, title, icon, script_name, is_locked, unlock_pattern) VALUES
   (1, 'Reconnaître les déchets', '♻️', 'mission1.js', 0, 'NONE'),
-  (2, 'Le déplacement des déchets', '🚚', 'mission2.js', 1, 'COLOR_GREEN'),
-  (3, 'L''impact des déchets', '🌍', 'mission3.js', 1, 'COLOR_BLUE'),
-  (4, 'Le temps des déchets', '⏳', 'mission4.js', 1, 'COLOR_YELLOW');
+  (2, 'Le déplacement des déchets', '🚚', 'mission2.js', 0, 'COLOR_GREEN'),
+  (3, 'L''impact des déchets', '🌍', 'mission3.js', 0, 'COLOR_BLUE'),
+  (4, 'Le temps des déchets', '⏳', 'mission4.js', 0, 'COLOR_YELLOW');
